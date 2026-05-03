@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <utf.h>
 #include "../include/lexkey.h"
 
 static int
@@ -27,7 +28,7 @@ main () {
   #define ENC(buf, buf_len, u, s) do { \
     compact_state_t st = {0, sizeof(buf), (buf)}; \
     lexkey_encode_uint(&st, (u)); \
-    lexkey_encode_string(&st, (s), strlen(s)); \
+    lexkey_encode_string(&st, utf8_string_view_init((const utf8_t *) (s), strlen(s))); \
     (buf_len) = st.start; \
   } while (0)
 

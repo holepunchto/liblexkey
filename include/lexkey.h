@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <utf.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,21 +83,54 @@ lexkey_decode_buffer (compact_state_t *state, uint8_t *result, size_t *result_le
 
 // === STRING ===
 //
-// Identical wire format to BUFFER; convention is UTF-8.
+// Identical wire format to BUFFER; the bytes are interpreted as UTF-8.
 
 static inline int
-lexkey_preencode_string (compact_state_t *state, const char *str, size_t len) {
-  return lexkey_preencode_buffer(state, (const uint8_t *) str, len);
+lexkey_preencode_string (compact_state_t *state, utf8_string_view_t string) {
+  return lexkey_preencode_buffer(state, (const uint8_t *) string.data, string.len);
 }
 
 static inline int
-lexkey_encode_string (compact_state_t *state, const char *str, size_t len) {
-  return lexkey_encode_buffer(state, (const uint8_t *) str, len);
+lexkey_encode_string (compact_state_t *state, utf8_string_view_t string) {
+  return lexkey_encode_buffer(state, (const uint8_t *) string.data, string.len);
 }
 
+// Decodes into result (an owning utf8_string_t which must be initialised by
+// the caller). The decoded length never exceeds the bytes consumed from
+// state, so the worst-case capacity is reserved up front. Pass NULL to
+// consume the value without writing.
 static inline int
-lexkey_decode_string (compact_state_t *state, char *result, size_t *result_len) {
-  return lexkey_decode_buffer(state, (uint8_t *) result, result_len);
+lexkey_decode_string (compact_state_t *state, utf8_string_t *result) {
+  if (state->start >= state->end) return -1;
+  if (state->buffer[state->start++] != 0x00) return -1;
+
+  if (result) {
+    int err = utf8_string_reserve(result, state->end - state->start);
+    if (err < 0) return err;
+  }
+
+  size_t n = 0;
+  while (state->start < state->end) {
+    uint8_t b = state->buffer[state->start++];
+    if (b != 0x00) {
+      if (result) result->data[n] = b;
+      n++;
+      continue;
+    }
+    if (state->start >= state->end) return -1;
+    uint8_t next = state->buffer[state->start++];
+    if (next == 0x01) {
+      if (result) result->len = n;
+      return 0;
+    }
+    if (next == 0x02) {
+      if (result) result->data[n] = 0x00;
+      n++;
+      continue;
+    }
+    return -1;
+  }
+  return -1;
 }
 
 // === UINT ===

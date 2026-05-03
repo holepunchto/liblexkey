@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <utf.h>
 #include "../include/lexkey.h"
 
 typedef struct {
@@ -19,12 +20,13 @@ typedef struct {
 
 static void
 encode (item_t *it, uint64_t u, const char *s) {
+  size_t s_len = strlen(s);
   compact_state_t st = {0, sizeof(it->buf), it->buf};
   lexkey_encode_uint(&st, u);
-  lexkey_encode_string(&st, s, strlen(s));
+  lexkey_encode_string(&st, utf8_string_view_init((const utf8_t *) s, s_len));
   it->u = u;
   it->s = s;
-  it->s_len = strlen(s);
+  it->s_len = s_len;
   it->len = st.start;
 }
 
@@ -70,35 +72,38 @@ main () {
     compact_state_t d = {0, items[i].len, items[i].buf};
     uint64_t u;
     assert(lexkey_decode_uint(&d, &u) == 0);
-    char s[32];
-    size_t s_len;
-    assert(lexkey_decode_string(&d, s, &s_len) == 0);
+    utf8_string_t s;
+    utf8_string_init(&s);
+    assert(lexkey_decode_string(&d, &s) == 0);
     assert(d.start == items[i].len);
     assert(u == items[i].u);
-    assert(s_len == items[i].s_len);
-    assert(memcmp(s, items[i].s, s_len) == 0);
+    assert(s.len == items[i].s_len);
+    assert(memcmp(s.data, items[i].s, s.len) == 0);
+    utf8_string_destroy(&s);
   }
 
   // Preencode then encode pattern (the canonical compact-style usage).
   {
+    utf8_string_view_t hello = utf8_string_view_init((const utf8_t *) "hello", 5);
     compact_state_t s = {0, 0, NULL};
     lexkey_preencode_uint(&s, 42);
-    lexkey_preencode_string(&s, "hello", 5);
+    lexkey_preencode_string(&s, hello);
     uint8_t *buf = (uint8_t *) malloc(s.end);
     assert(buf != NULL);
     s.buffer = buf;
     lexkey_encode_uint(&s, 42);
-    lexkey_encode_string(&s, "hello", 5);
+    lexkey_encode_string(&s, hello);
 
     compact_state_t d = {0, s.start, buf};
     uint64_t u;
-    char str[16];
-    size_t str_len;
+    utf8_string_t str;
+    utf8_string_init(&str);
     assert(lexkey_decode_uint(&d, &u) == 0);
-    assert(lexkey_decode_string(&d, str, &str_len) == 0);
+    assert(lexkey_decode_string(&d, &str) == 0);
     assert(u == 42);
-    assert(str_len == 5);
-    assert(memcmp(str, "hello", 5) == 0);
+    assert(str.len == 5);
+    assert(memcmp(str.data, "hello", 5) == 0);
+    utf8_string_destroy(&str);
     free(buf);
   }
 

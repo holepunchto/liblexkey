@@ -6,68 +6,25 @@ project(lexkey C)
 
 fetch_package("github:holepunchto/libcompact")
 
-add_library(lexkey OBJECT)
-
-set_target_properties(
-  lexkey
-  PROPERTIES
-  C_STANDARD 99
-  POSITION_INDEPENDENT_CODE ON
-)
+add_library(lexkey INTERFACE)
 
 target_sources(
   lexkey
   INTERFACE
     include/lexkey.h
-  PRIVATE
-    src/lexkey.c
 )
 
 target_include_directories(
   lexkey
-  PUBLIC
+  INTERFACE
     include
 )
 
 target_link_libraries(
   lexkey
-  PUBLIC
-    compact
-)
-
-add_library(lexkey_shared SHARED)
-
-set_target_properties(
-  lexkey_shared
-  PROPERTIES
-  OUTPUT_NAME lexkey
-  WINDOWS_EXPORT_ALL_SYMBOLS ON
-)
-
-target_link_libraries(
-  lexkey_shared
-  PUBLIC
-    lexkey
-    compact_shared
-)
-
-add_library(lexkey_static STATIC)
-
-set_target_properties(
-  lexkey_static
-  PROPERTIES
-  OUTPUT_NAME lexkey
-  PREFIX lib
-)
-
-target_link_libraries(
-  lexkey_static
-  PUBLIC
-    lexkey
+  INTERFACE
     compact_static
 )
-
-install(TARGETS lexkey_shared lexkey_static)
 
 install(FILES include/lexkey.h DESTINATION include)
 
