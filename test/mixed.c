@@ -72,7 +72,7 @@ main () {
     assert(lexkey_decode_uint(&d, &u) == 0);
     char s[32];
     size_t s_len;
-    assert(lexkey_decode_string(&d, s, sizeof(s), &s_len) == 0);
+    assert(lexkey_decode_string(&d, s, &s_len) == 0);
     assert(d.start == items[i].len);
     assert(u == items[i].u);
     assert(s_len == items[i].s_len);
@@ -95,7 +95,7 @@ main () {
     char str[16];
     size_t str_len;
     assert(lexkey_decode_uint(&d, &u) == 0);
-    assert(lexkey_decode_string(&d, str, sizeof(str), &str_len) == 0);
+    assert(lexkey_decode_string(&d, str, &str_len) == 0);
     assert(u == 42);
     assert(str_len == 5);
     assert(memcmp(str, "hello", 5) == 0);

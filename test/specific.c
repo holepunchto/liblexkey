@@ -60,7 +60,7 @@ main () {
   size_t out_len;
   for (int i = 0; i < 9; i++) {
     compact_state_t d = {0, items[i].len, items[i].buf};
-    int err = lexkey_decode_buffer(&d, out, sizeof(out), &out_len);
+    int err = lexkey_decode_buffer(&d, out, &out_len);
     assert(err == 0);
     assert(d.start == items[i].len);
   }

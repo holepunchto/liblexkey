@@ -47,11 +47,12 @@ lexkey_encode_buffer (compact_state_t *state, const uint8_t *buf, size_t len) {
   return 0;
 }
 
-// Decodes into result (which must have capacity >= the encoded body length,
-// at most state->end - state->start). Sets *result_len. If result is NULL,
-// the value is consumed but not written.
+// Decodes into result. The decoded length never exceeds the number of bytes
+// consumed from state, so the caller must allocate result of at least
+// state->end - state->start bytes (or pass NULL to consume without writing).
+// Sets *result_len.
 static inline int
-lexkey_decode_buffer (compact_state_t *state, uint8_t *result, size_t result_cap, size_t *result_len) {
+lexkey_decode_buffer (compact_state_t *state, uint8_t *result, size_t *result_len) {
   if (state->start >= state->end) return -1;
   if (state->buffer[state->start++] != 0x00) return -1;
 
@@ -59,10 +60,7 @@ lexkey_decode_buffer (compact_state_t *state, uint8_t *result, size_t result_cap
   while (state->start < state->end) {
     uint8_t b = state->buffer[state->start++];
     if (b != 0x00) {
-      if (result) {
-        if (n >= result_cap) return -1;
-        result[n] = b;
-      }
+      if (result) result[n] = b;
       n++;
       continue;
     }
@@ -73,10 +71,7 @@ lexkey_decode_buffer (compact_state_t *state, uint8_t *result, size_t result_cap
       return 0;
     }
     if (next == 0x02) {
-      if (result) {
-        if (n >= result_cap) return -1;
-        result[n] = 0x00;
-      }
+      if (result) result[n] = 0x00;
       n++;
       continue;
     }
@@ -100,8 +95,8 @@ lexkey_encode_string (compact_state_t *state, const char *str, size_t len) {
 }
 
 static inline int
-lexkey_decode_string (compact_state_t *state, char *result, size_t result_cap, size_t *result_len) {
-  return lexkey_decode_buffer(state, (uint8_t *) result, result_cap, result_len);
+lexkey_decode_string (compact_state_t *state, char *result, size_t *result_len) {
+  return lexkey_decode_buffer(state, (uint8_t *) result, result_len);
 }
 
 // === UINT ===

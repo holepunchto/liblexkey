@@ -20,7 +20,7 @@ roundtrip (const char *str, size_t len) {
   char out[64];
   size_t out_len;
   compact_state_t d = {0, s.start, buf};
-  err = lexkey_decode_string(&d, out, sizeof(out), &out_len);
+  err = lexkey_decode_string(&d, out, &out_len);
   assert(err == 0);
   assert(out_len == len);
   assert(memcmp(out, str, len) == 0);
@@ -52,10 +52,10 @@ main () {
     char out[16];
     size_t out_len;
 
-    assert(lexkey_decode_string(&d, out, sizeof(out), &out_len) == 0);
+    assert(lexkey_decode_string(&d, out, &out_len) == 0);
     assert(out_len == 3 && memcmp(out, "foo", 3) == 0);
 
-    assert(lexkey_decode_string(&d, out, sizeof(out), &out_len) == 0);
+    assert(lexkey_decode_string(&d, out, &out_len) == 0);
     assert(out_len == 3 && memcmp(out, "bar", 3) == 0);
 
     assert(d.start == total);
@@ -68,7 +68,7 @@ main () {
     lexkey_encode_string(&s, "skip me", 7);
     compact_state_t d = {0, s.start, buf};
     size_t out_len;
-    assert(lexkey_decode_string(&d, NULL, 0, &out_len) == 0);
+    assert(lexkey_decode_string(&d, NULL, &out_len) == 0);
     assert(out_len == 7);
     assert(d.start == s.start);
   }
@@ -79,7 +79,7 @@ main () {
     compact_state_t d = {0, sizeof(bad), bad};
     char out[8];
     size_t out_len;
-    assert(lexkey_decode_string(&d, out, sizeof(out), &out_len) == -1);
+    assert(lexkey_decode_string(&d, out, &out_len) == -1);
   }
 
   // Malformed: bad start
@@ -88,7 +88,7 @@ main () {
     compact_state_t d = {0, sizeof(bad), bad};
     char out[8];
     size_t out_len;
-    assert(lexkey_decode_string(&d, out, sizeof(out), &out_len) == -1);
+    assert(lexkey_decode_string(&d, out, &out_len) == -1);
   }
 
   return 0;

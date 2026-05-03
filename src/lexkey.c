@@ -6,11 +6,11 @@
 
 extern int lexkey_preencode_buffer (compact_state_t *state, const uint8_t *buf, size_t len);
 extern int lexkey_encode_buffer (compact_state_t *state, const uint8_t *buf, size_t len);
-extern int lexkey_decode_buffer (compact_state_t *state, uint8_t *result, size_t result_cap, size_t *result_len);
+extern int lexkey_decode_buffer (compact_state_t *state, uint8_t *result, size_t *result_len);
 
 extern int lexkey_preencode_string (compact_state_t *state, const char *str, size_t len);
 extern int lexkey_encode_string (compact_state_t *state, const char *str, size_t len);
-extern int lexkey_decode_string (compact_state_t *state, char *result, size_t result_cap, size_t *result_len);
+extern int lexkey_decode_string (compact_state_t *state, char *result, size_t *result_len);
 
 extern int lexkey_preencode_uint (compact_state_t *state, uint64_t n);
 extern int lexkey_encode_uint (compact_state_t *state, uint64_t n);
